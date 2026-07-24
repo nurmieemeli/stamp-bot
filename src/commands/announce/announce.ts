@@ -1,5 +1,6 @@
 import {
   ChannelType,
+  MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
@@ -29,7 +30,7 @@ const data = new SlashCommandBuilder()
 async function execute(interaction: ChatInputCommandInteraction) {
   const member = interaction.member as GuildMember;
   if (!(await canAnnounce(member))) {
-    await interaction.reply({ content: "You don't have permission to post announcements.", ephemeral: true });
+    await interaction.reply({ content: "You don't have permission to post announcements.", flags: MessageFlags.Ephemeral });
     return;
   }
 
@@ -39,7 +40,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
   if (!channel) {
     await interaction.reply({
       content: "No channel specified and no default announcement channel is configured. Provide a channel or run /config set-announcement-channel.",
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }

@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, type ChatInputCommandInteraction, type GuildMember } from "discord.js";
+import { MessageFlags, SlashCommandBuilder, type ChatInputCommandInteraction, type GuildMember } from "discord.js";
 import type { Command } from "../../types";
 import { claimTicket, closeTicket, requireTicketThread, TicketError } from "../../services/ticketService";
 import { isSupportStaff } from "../../services/permissionService";
@@ -37,39 +37,39 @@ async function execute(interaction: ChatInputCommandInteraction) {
     switch (sub) {
       case "claim": {
         await claimTicket(thread, member);
-        await interaction.reply({ content: "Ticket claimed.", ephemeral: true });
+        await interaction.reply({ content: "Ticket claimed.", flags: MessageFlags.Ephemeral });
         break;
       }
       case "close": {
         const reason = interaction.options.getString("reason") ?? undefined;
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         await closeTicket(thread, member, reason);
         await interaction.editReply({ content: "Ticket closed." });
         break;
       }
       case "add": {
         if (!(await isSupportStaff(member))) {
-          await interaction.reply({ content: "You don't have permission to do that.", ephemeral: true });
+          await interaction.reply({ content: "You don't have permission to do that.", flags: MessageFlags.Ephemeral });
           return;
         }
         const user = interaction.options.getUser("user", true);
         await thread.members.add(user.id);
-        await interaction.reply({ content: `Added <@${user.id}> to the ticket.`, ephemeral: true });
+        await interaction.reply({ content: `Added <@${user.id}> to the ticket.`, flags: MessageFlags.Ephemeral });
         break;
       }
       case "remove": {
         if (!(await isSupportStaff(member))) {
-          await interaction.reply({ content: "You don't have permission to do that.", ephemeral: true });
+          await interaction.reply({ content: "You don't have permission to do that.", flags: MessageFlags.Ephemeral });
           return;
         }
         const user = interaction.options.getUser("user", true);
         const ticket = await getTicketByThread(thread.id);
         if (ticket?.openerId === user.id) {
-          await interaction.reply({ content: "You can't remove the ticket opener.", ephemeral: true });
+          await interaction.reply({ content: "You can't remove the ticket opener.", flags: MessageFlags.Ephemeral });
           return;
         }
         await thread.members.remove(user.id);
-        await interaction.reply({ content: `Removed <@${user.id}> from the ticket.`, ephemeral: true });
+        await interaction.reply({ content: `Removed <@${user.id}> from the ticket.`, flags: MessageFlags.Ephemeral });
         break;
       }
     }
@@ -78,7 +78,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply({ content: err.message });
       } else {
-        await interaction.reply({ content: err.message, ephemeral: true });
+        await interaction.reply({ content: err.message, flags: MessageFlags.Ephemeral });
       }
       return;
     }

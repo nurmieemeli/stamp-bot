@@ -1,4 +1,4 @@
-import { PermissionFlagsBits, SlashCommandBuilder, type ChatInputCommandInteraction } from "discord.js";
+import { MessageFlags, PermissionFlagsBits, SlashCommandBuilder, type ChatInputCommandInteraction } from "discord.js";
 import type { Command } from "../../types";
 import { getOrCreateGuildConfig } from "../../db/repositories/guildConfigRepo";
 import { setupEmbed } from "../../ui/embeds/setupEmbeds";
@@ -17,7 +17,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.reply({
     embeds: [setupEmbed(fields)],
     components: setupComponents(config),
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }
 

@@ -1,5 +1,6 @@
 import {
   ChannelType,
+  MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
@@ -75,7 +76,7 @@ const data = new SlashCommandBuilder()
 
 async function execute(interaction: ChatInputCommandInteraction) {
   if (!interaction.guildId) {
-    await interaction.reply({ content: "This command can only be used in a server.", ephemeral: true });
+    await interaction.reply({ content: "This command can only be used in a server.", flags: MessageFlags.Ephemeral });
     return;
   }
 
@@ -87,44 +88,44 @@ async function execute(interaction: ChatInputCommandInteraction) {
       const type = interaction.options.getString("type", true) as "member" | "moderation" | "message";
       const channel = interaction.options.getChannel("channel", true);
       await setLogChannel(guildId, type, channel.id);
-      await interaction.reply({ content: `${type} logs will now be sent to <#${channel.id}>.`, ephemeral: true });
+      await interaction.reply({ content: `${type} logs will now be sent to <#${channel.id}>.`, flags: MessageFlags.Ephemeral });
       break;
     }
     case "set-ticket-channel": {
       const channel = interaction.options.getChannel("channel", true);
       await updateGuildConfig(guildId, { ticketChannelId: channel.id });
-      await interaction.reply({ content: `Ticket threads will now be created under <#${channel.id}>.`, ephemeral: true });
+      await interaction.reply({ content: `Ticket threads will now be created under <#${channel.id}>.`, flags: MessageFlags.Ephemeral });
       break;
     }
     case "set-ticket-support-role": {
       const role = interaction.options.getRole("role", true);
       await updateGuildConfig(guildId, { ticketSupportRoleId: role.id });
-      await interaction.reply({ content: `<@&${role.id}> can now claim and close tickets.`, ephemeral: true });
+      await interaction.reply({ content: `<@&${role.id}> can now claim and close tickets.`, flags: MessageFlags.Ephemeral });
       break;
     }
     case "set-ticket-transcript-channel": {
       const channel = interaction.options.getChannel("channel", true);
       await updateGuildConfig(guildId, { ticketTranscriptChannelId: channel.id });
-      await interaction.reply({ content: `Ticket transcripts will now be posted to <#${channel.id}>.`, ephemeral: true });
+      await interaction.reply({ content: `Ticket transcripts will now be posted to <#${channel.id}>.`, flags: MessageFlags.Ephemeral });
       break;
     }
     case "set-announcement-channel": {
       const channel = interaction.options.getChannel("channel", true);
       await updateGuildConfig(guildId, { announcementDefaultChannelId: channel.id });
-      await interaction.reply({ content: `Default announcement channel set to <#${channel.id}>.`, ephemeral: true });
+      await interaction.reply({ content: `Default announcement channel set to <#${channel.id}>.`, flags: MessageFlags.Ephemeral });
       break;
     }
     case "set-announcement-role": {
       const role = interaction.options.getRole("role", true);
       await updateGuildConfig(guildId, { announcementStaffRoleId: role.id });
-      await interaction.reply({ content: `<@&${role.id}> can now use /announce.`, ephemeral: true });
+      await interaction.reply({ content: `<@&${role.id}> can now use /announce.`, flags: MessageFlags.Ephemeral });
       break;
     }
     case "view": {
       const config = await getOrCreateGuildConfig(guildId);
       const fields = await buildConfigHealthFields(interaction.guild!, config);
       await interaction.reply({
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
         embeds: [
           {
             title: "Server configuration",

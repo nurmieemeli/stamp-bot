@@ -1,4 +1,4 @@
-import { Events, type Interaction, type GuildMember, type TextChannel } from "discord.js";
+import { Events, MessageFlags, type Interaction, type GuildMember, type TextChannel } from "discord.js";
 import type { BotEvent } from "./loader";
 import type { BotClient } from "../client";
 import { logger } from "../utils/logger";
@@ -25,11 +25,11 @@ async function handleChatInputCommand(interaction: Interaction) {
     await command.execute(interaction);
   } catch (err) {
     logger.error(err, `Error executing command ${interaction.commandName}`);
-    const payload = { content: "Something went wrong running that command.", ephemeral: true };
+    const content = "Something went wrong running that command.";
     if (interaction.replied || interaction.deferred) {
-      await interaction.editReply(payload).catch(() => {});
+      await interaction.editReply({ content }).catch(() => {});
     } else {
-      await interaction.reply(payload).catch(() => {});
+      await interaction.reply({ content, flags: MessageFlags.Ephemeral }).catch(() => {});
     }
   }
 }
@@ -43,13 +43,13 @@ async function handleButton(interaction: Interaction) {
     switch (action) {
       case "ticket-open": {
         const thread = await openTicket(interaction.guild!, member);
-        await interaction.reply({ content: `Your ticket has been created: <#${thread.id}>`, ephemeral: true });
+        await interaction.reply({ content: `Your ticket has been created: <#${thread.id}>`, flags: MessageFlags.Ephemeral });
         break;
       }
       case "ticket-claim": {
         if (!interaction.channel?.isThread()) throw new TicketError("This isn't a ticket thread.");
         await claimTicket(interaction.channel, member);
-        await interaction.reply({ content: "Ticket claimed.", ephemeral: true });
+        await interaction.reply({ content: "Ticket claimed.", flags: MessageFlags.Ephemeral });
         break;
       }
       case "ticket-close": {
@@ -61,12 +61,12 @@ async function handleButton(interaction: Interaction) {
     }
   } catch (err) {
     if (err instanceof TicketError) {
-      await interaction.reply({ content: err.message, ephemeral: true }).catch(() => {});
+      await interaction.reply({ content: err.message, flags: MessageFlags.Ephemeral }).catch(() => {});
       return;
     }
     logger.error(err, `Error handling button ${interaction.customId}`);
     await interaction
-      .reply({ content: "Something went wrong handling that action.", ephemeral: true })
+      .reply({ content: "Something went wrong handling that action.", flags: MessageFlags.Ephemeral })
       .catch(() => {});
   }
 }
@@ -92,7 +92,7 @@ async function handleSetupSelect(interaction: Interaction) {
   } catch (err) {
     logger.error(err, `Error handling setup select ${interaction.customId}`);
     await interaction
-      .reply({ content: "Something went wrong saving that setting.", ephemeral: true })
+      .reply({ content: "Something went wrong saving that setting.", flags: MessageFlags.Ephemeral })
       .catch(() => {});
   }
 }
@@ -107,7 +107,7 @@ async function handleModal(interaction: Interaction) {
       case "ticket-close-modal": {
         if (!interaction.channel?.isThread()) throw new TicketError("This isn't a ticket thread.");
         const reason = interaction.fields.getTextInputValue("reason") || undefined;
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         await closeTicket(interaction.channel, member, reason);
         await interaction.editReply({ content: "Ticket closed." });
         break;
@@ -118,7 +118,7 @@ async function handleModal(interaction: Interaction) {
         if (!pending) {
           await interaction.reply({
             content: "This announcement request expired. Please run /announce again.",
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
           return;
         }
@@ -129,7 +129,7 @@ async function handleModal(interaction: Interaction) {
 
         const channel = await interaction.guild!.channels.fetch(pending.channelId).catch(() => null);
         if (!channel || !channel.isTextBased()) {
-          await interaction.reply({ content: "The target channel is no longer available.", ephemeral: true });
+          await interaction.reply({ content: "The target channel is no longer available.", flags: MessageFlags.Ephemeral });
           return;
         }
 
@@ -139,7 +139,7 @@ async function handleModal(interaction: Interaction) {
           allowedMentions: pending.pingRoleId ? { roles: [pending.pingRoleId] } : { parse: [] },
         });
 
-        await interaction.reply({ content: `Announcement posted in <#${pending.channelId}>.`, ephemeral: true });
+        await interaction.reply({ content: `Announcement posted in <#${pending.channelId}>.`, flags: MessageFlags.Ephemeral });
         break;
       }
       default:
@@ -147,11 +147,10 @@ async function handleModal(interaction: Interaction) {
     }
   } catch (err) {
     if (err instanceof TicketError) {
-      const payload = { content: err.message, ephemeral: true };
       if (interaction.deferred || interaction.replied) {
-        await interaction.editReply(payload).catch(() => {});
+        await interaction.editReply({ content: err.message }).catch(() => {});
       } else {
-        await interaction.reply(payload).catch(() => {});
+        await interaction.reply({ content: err.message, flags: MessageFlags.Ephemeral }).catch(() => {});
       }
       return;
     }

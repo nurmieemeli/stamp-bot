@@ -1,5 +1,6 @@
 import {
   ChannelType,
+  MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
@@ -24,7 +25,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
   const channel = (interaction.options.getChannel("channel") as TextChannel | null) ?? (interaction.channel as TextChannel);
 
   await channel.send({ embeds: [ticketPanelEmbed()], components: [ticketPanelRow()] });
-  await interaction.reply({ content: `Ticket panel posted in <#${channel.id}>.`, ephemeral: true });
+  await interaction.reply({ content: `Ticket panel posted in <#${channel.id}>.`, flags: MessageFlags.Ephemeral });
 }
 
 const command: Command = { data, execute };
