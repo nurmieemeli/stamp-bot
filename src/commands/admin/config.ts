@@ -6,6 +6,7 @@ import {
 } from "discord.js";
 import type { Command } from "../../types";
 import { getOrCreateGuildConfig, setLogChannel, updateGuildConfig } from "../../db/repositories/guildConfigRepo";
+import { buildConfigHealthFields } from "../../services/configHealthService";
 
 const data = new SlashCommandBuilder()
   .setName("config")
@@ -121,18 +122,14 @@ async function execute(interaction: ChatInputCommandInteraction) {
     }
     case "view": {
       const config = await getOrCreateGuildConfig(guildId);
+      const fields = await buildConfigHealthFields(interaction.guild!, config);
       await interaction.reply({
         ephemeral: true,
         embeds: [
           {
             title: "Server configuration",
-            fields: [
-              { name: "Ticket channel", value: config.ticketChannelId ? `<#${config.ticketChannelId}>` : "Not set", inline: true },
-              { name: "Ticket support role", value: config.ticketSupportRoleId ? `<@&${config.ticketSupportRoleId}>` : "Not set", inline: true },
-              { name: "Ticket transcript channel", value: config.ticketTranscriptChannelId ? `<#${config.ticketTranscriptChannelId}>` : "Not set", inline: true },
-              { name: "Announcement channel", value: config.announcementDefaultChannelId ? `<#${config.announcementDefaultChannelId}>` : "Not set", inline: true },
-              { name: "Announcement staff role", value: config.announcementStaffRoleId ? `<@&${config.announcementStaffRoleId}>` : "Not set", inline: true },
-            ],
+            description: "✅ configured and permissions look right · ⚠️ needs attention · plain \"Not set\" = not configured yet",
+            fields,
           },
         ],
       });

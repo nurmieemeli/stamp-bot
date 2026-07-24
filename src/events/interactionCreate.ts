@@ -6,6 +6,10 @@ import { parseCustomId } from "../utils/customId";
 import { openTicket, claimTicket, closeTicket, TicketError } from "../services/ticketService";
 import { ticketCloseModal } from "../ui/modals/ticketCloseModal";
 import { popPendingAnnouncement, buildAnnouncementEmbed } from "../services/announcementService";
+import { getOrCreateGuildConfig, updateGuildConfig } from "../db/repositories/guildConfigRepo";
+import { buildConfigHealthFields } from "../services/configHealthService";
+import { setupEmbed } from "../ui/embeds/setupEmbeds";
+import { setupComponents, SETUP_FIELD_COLUMN, type SetupField } from "../ui/components/setupSelects";
 
 async function handleChatInputCommand(interaction: Interaction) {
   if (!interaction.isChatInputCommand()) return;
@@ -63,6 +67,32 @@ async function handleButton(interaction: Interaction) {
     logger.error(err, `Error handling button ${interaction.customId}`);
     await interaction
       .reply({ content: "Something went wrong handling that action.", ephemeral: true })
+      .catch(() => {});
+  }
+}
+
+async function handleSetupSelect(interaction: Interaction) {
+  if (!interaction.isChannelSelectMenu() && !interaction.isRoleSelectMenu()) return;
+  const { action, args } = parseCustomId(interaction.customId);
+  if (action !== "setup-select") return;
+
+  const field = args[0] as SetupField;
+  const column = SETUP_FIELD_COLUMN[field];
+  if (!column) return;
+
+  const guildId = interaction.guildId!;
+  const selectedId = interaction.values[0] ?? null;
+
+  try {
+    await updateGuildConfig(guildId, { [column]: selectedId });
+
+    const updated = await getOrCreateGuildConfig(guildId);
+    const fields = await buildConfigHealthFields(interaction.guild!, updated);
+    await interaction.update({ embeds: [setupEmbed(fields)], components: setupComponents(updated) });
+  } catch (err) {
+    logger.error(err, `Error handling setup select ${interaction.customId}`);
+    await interaction
+      .reply({ content: "Something went wrong saving that setting.", ephemeral: true })
       .catch(() => {});
   }
 }
@@ -134,6 +164,7 @@ const event: BotEvent = {
   async execute(interaction: Interaction) {
     if (interaction.isChatInputCommand()) return handleChatInputCommand(interaction);
     if (interaction.isButton()) return handleButton(interaction);
+    if (interaction.isChannelSelectMenu() || interaction.isRoleSelectMenu()) return handleSetupSelect(interaction);
     if (interaction.isModalSubmit()) return handleModal(interaction);
   },
 };
