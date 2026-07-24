@@ -72,6 +72,12 @@ const data = new SlashCommandBuilder()
       .setDescription("Set an extra role allowed to use /announce")
       .addRoleOption((opt) => opt.setName("role").setDescription("Announcement staff role").setRequired(true))
   )
+  .addSubcommand((sub) =>
+    sub
+      .setName("set-moderator-role")
+      .setDescription("Set an extra role allowed to use moderation commands (warn/timeout/kick/ban/purge)")
+      .addRoleOption((opt) => opt.setName("role").setDescription("Moderator role").setRequired(true))
+  )
   .addSubcommand((sub) => sub.setName("view").setDescription("View the current configuration"));
 
 async function execute(interaction: ChatInputCommandInteraction) {
@@ -119,6 +125,15 @@ async function execute(interaction: ChatInputCommandInteraction) {
       const role = interaction.options.getRole("role", true);
       await updateGuildConfig(guildId, { announcementStaffRoleId: role.id });
       await interaction.reply({ content: `<@&${role.id}> can now use /announce.`, flags: MessageFlags.Ephemeral });
+      break;
+    }
+    case "set-moderator-role": {
+      const role = interaction.options.getRole("role", true);
+      await updateGuildConfig(guildId, { moderatorRoleId: role.id });
+      await interaction.reply({
+        content: `<@&${role.id}> can now use moderation commands (in addition to anyone with native Kick/Ban/Timeout permissions).`,
+        flags: MessageFlags.Ephemeral,
+      });
       break;
     }
     case "view": {

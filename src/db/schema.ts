@@ -7,6 +7,7 @@ export const guildConfig = sqliteTable("guild_config", {
   ticketTranscriptChannelId: text("ticket_transcript_channel_id"),
   announcementDefaultChannelId: text("announcement_default_channel_id"),
   announcementStaffRoleId: text("announcement_staff_role_id"),
+  moderatorRoleId: text("moderator_role_id"),
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
 });
@@ -38,7 +39,21 @@ export const tickets = sqliteTable("tickets", {
   createdAt: integer("created_at").notNull(),
 });
 
+export const moderationCases = sqliteTable("moderation_cases", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  guildId: text("guild_id").notNull(),
+  type: text("type", { enum: ["warn", "timeout", "kick", "ban", "unban"] }).notNull(),
+  targetId: text("target_id").notNull(),
+  targetTag: text("target_tag").notNull(),
+  moderatorId: text("moderator_id").notNull(),
+  reason: text("reason"),
+  durationMs: integer("duration_ms"),
+  createdAt: integer("created_at").notNull(),
+});
+
 export type GuildConfig = typeof guildConfig.$inferSelect;
 export type LogChannel = typeof logChannels.$inferSelect;
 export type Ticket = typeof tickets.$inferSelect;
 export type NewTicket = typeof tickets.$inferInsert;
+export type ModerationCase = typeof moderationCases.$inferSelect;
+export type NewModerationCase = typeof moderationCases.$inferInsert;

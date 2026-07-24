@@ -11,6 +11,11 @@ const event: BotEvent = {
       .then((logs) => logs.entries.find((e) => e.target?.id === ban.user.id))
       .catch(() => undefined);
 
+    // /ban already logs this with correct moderator attribution; the audit log only ever
+    // shows the bot itself as executor for bot-driven actions, so logging again here would
+    // just be a confusing, misattributed duplicate.
+    if (entry?.executor?.id === ban.client.user.id) return;
+
     await sendLog(
       ban.guild,
       "moderation",

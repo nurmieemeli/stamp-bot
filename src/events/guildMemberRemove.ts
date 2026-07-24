@@ -21,6 +21,9 @@ const event: BotEvent = {
       .catch(() => undefined);
 
     if (kickEntry) {
+      // /kick already logs this with correct moderator attribution.
+      if (kickEntry.executor?.id === guild.client.user.id) return;
+
       await sendLog(
         guild,
         "moderation",

@@ -11,6 +11,9 @@ const event: BotEvent = {
       .then((logs) => logs.entries.find((e) => e.target?.id === ban.user.id))
       .catch(() => undefined);
 
+    // /unban already logs this with correct moderator attribution.
+    if (entry?.executor?.id === ban.client.user.id) return;
+
     await sendLog(ban.guild, "moderation", unbanEmbed(ban.user, entry?.executor?.tag));
   },
 };

@@ -63,7 +63,12 @@ export function unbanEmbed(user: User, moderatorTag?: string | null) {
     .setTimestamp();
 }
 
-export function timeoutEmbed(member: GuildMember, until: Date | null) {
+export function timeoutEmbed(
+  member: GuildMember,
+  until: Date | null,
+  moderatorTag?: string | null,
+  reason?: string | null
+) {
   const applied = until !== null;
   return new EmbedBuilder()
     .setColor(COLORS.timeout)
@@ -72,9 +77,9 @@ export function timeoutEmbed(member: GuildMember, until: Date | null) {
       iconURL: member.user.displayAvatarURL(),
     })
     .addFields(
-      applied
-        ? [{ name: "Until", value: `<t:${Math.floor(until.getTime() / 1000)}:F>` }]
-        : []
+      ...(applied ? [{ name: "Until", value: `<t:${Math.floor(until.getTime() / 1000)}:F>`, inline: true }] : []),
+      { name: "Moderator", value: moderatorTag ?? "Unknown", inline: true },
+      { name: "Reason", value: reason ?? "No reason provided", inline: true }
     )
     .setFooter({ text: `ID: ${member.id}` })
     .setTimestamp();

@@ -22,3 +22,18 @@ export async function canAnnounce(member: GuildMember): Promise<boolean> {
 export function isTicketOpener(member: GuildMember, openerId: string): boolean {
   return member.id === openerId;
 }
+
+export async function isModerator(member: GuildMember): Promise<boolean> {
+  if (
+    member.permissions.has(PermissionsBitField.Flags.ModerateMembers) ||
+    member.permissions.has(PermissionsBitField.Flags.KickMembers) ||
+    member.permissions.has(PermissionsBitField.Flags.BanMembers)
+  ) {
+    return true;
+  }
+  const config = await getOrCreateGuildConfig(member.guild.id);
+  if (config.moderatorRoleId && member.roles.cache.has(config.moderatorRoleId)) {
+    return true;
+  }
+  return false;
+}
