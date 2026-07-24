@@ -146,15 +146,18 @@ async function handleModal(interaction: Interaction) {
         break;
     }
   } catch (err) {
-    if (err instanceof TicketError) {
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply({ content: err.message }).catch(() => {});
-      } else {
-        await interaction.reply({ content: err.message, flags: MessageFlags.Ephemeral }).catch(() => {});
-      }
-      return;
+    const content =
+      err instanceof TicketError ? err.message : "Something went wrong handling that submission.";
+
+    if (!(err instanceof TicketError)) {
+      logger.error(err, `Error handling modal ${interaction.customId}`);
     }
-    logger.error(err, `Error handling modal ${interaction.customId}`);
+
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply({ content }).catch(() => {});
+    } else {
+      await interaction.reply({ content, flags: MessageFlags.Ephemeral }).catch(() => {});
+    }
   }
 }
 
