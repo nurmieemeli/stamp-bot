@@ -1,0 +1,32 @@
+{
+  "name": "neux-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Discord support bot for stamp.rip — announcements, logging, and support tickets.",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json && node scripts/copy-migrations.js",
+    "start": "node dist/index.js",
+    "deploy-commands": "tsx scripts/deploy-commands.ts",
+    "deploy-commands:global": "tsx scripts/deploy-commands.ts --global",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0",
+    "discord-html-transcripts": "^3.2.0",
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.38.4",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "drizzle-kit": "^0.30.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
