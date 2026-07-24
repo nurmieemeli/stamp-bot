@@ -8,6 +8,7 @@ import {
 import type { Command } from "../../types";
 import { getOrCreateGuildConfig, setLogChannel, updateGuildConfig } from "../../db/repositories/guildConfigRepo";
 import { buildConfigHealthFields } from "../../services/configHealthService";
+import { BRAND_COLOR } from "../../utils/theme";
 
 const data = new SlashCommandBuilder()
   .setName("config")
@@ -143,6 +144,7 @@ async function execute(interaction: ChatInputCommandInteraction) {
         flags: MessageFlags.Ephemeral,
         embeds: [
           {
+            color: BRAND_COLOR,
             title: "Server configuration",
             description: "✅ configured and permissions look right · ⚠️ needs attention · plain \"Not set\" = not configured yet",
             fields,

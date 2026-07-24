@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { EmbedBuilder } from "discord.js";
+import { BRAND_COLOR } from "../utils/theme";
 
 export interface PendingAnnouncement {
   channelId: string;
@@ -24,11 +25,9 @@ export function popPendingAnnouncement(token: string): PendingAnnouncement | und
   return data;
 }
 
-const DEFAULT_COLOR = 0x5865f2;
-
 export function buildAnnouncementEmbed(params: { title: string; body: string; imageUrl?: string; color?: number }) {
   const embed = new EmbedBuilder()
-    .setColor(params.color ?? DEFAULT_COLOR)
+    .setColor(params.color ?? BRAND_COLOR)
     .setTitle(params.title)
     .setDescription(params.body)
     .setTimestamp();

@@ -1,15 +1,16 @@
 import { EmbedBuilder } from "discord.js";
+import { BRAND_COLOR } from "../../utils/theme";
 
 export function ticketPanelEmbed() {
   return new EmbedBuilder()
-    .setColor(0x5865f2)
+    .setColor(BRAND_COLOR)
     .setTitle("Need help?")
     .setDescription("Click the button below to open a private support ticket with our team.");
 }
 
 export function ticketOpenedEmbed(openerId: string) {
   return new EmbedBuilder()
-    .setColor(0x5865f2)
+    .setColor(BRAND_COLOR)
     .setTitle("Support ticket opened")
     .setDescription(
       `Thanks for reaching out, <@${openerId}>! Please describe your issue and a member of the support team will be with you shortly.`
