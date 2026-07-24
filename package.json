@@ -14,7 +14,7 @@
     "db:migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
-    "@libsql/client": "^0.14.0",
+    "@libsql/client": "^0.17.4",
     "discord-html-transcripts": "3.2.0",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.7",
@@ -28,5 +28,9 @@
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
+  },
+  "overrides": {
+    "undici": "^6.27.0",
+    "esbuild": "^0.25.0"
   }
 }
