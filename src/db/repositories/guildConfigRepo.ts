@@ -17,32 +17,28 @@ export async function getOrCreateGuildConfig(guildId: string): Promise<GuildConf
 }
 
 export async function updateGuildConfig(guildId: string, patch: Partial<GuildConfig>) {
-  await getOrCreateGuildConfig(guildId);
+  const timestamp = now();
   await db
-    .update(guildConfig)
-    .set({ ...patch, updatedAt: now() })
-    .where(eq(guildConfig.guildId, guildId))
+    .insert(guildConfig)
+    .values({ guildId, ...patch, createdAt: timestamp, updatedAt: timestamp })
+    .onConflictDoUpdate({
+      target: guildConfig.guildId,
+      set: { ...patch, updatedAt: timestamp },
+    })
     .run();
 }
 
 export type LogType = "member" | "moderation" | "message";
 
 export async function setLogChannel(guildId: string, logType: LogType, channelId: string) {
-  const existing = await db
-    .select()
-    .from(logChannels)
-    .where(and(eq(logChannels.guildId, guildId), eq(logChannels.logType, logType)))
-    .get();
-
-  if (existing) {
-    await db
-      .update(logChannels)
-      .set({ channelId })
-      .where(and(eq(logChannels.guildId, guildId), eq(logChannels.logType, logType)))
-      .run();
-  } else {
-    await db.insert(logChannels).values({ guildId, logType, channelId }).run();
-  }
+  await db
+    .insert(logChannels)
+    .values({ guildId, logType, channelId })
+    .onConflictDoUpdate({
+      target: [logChannels.guildId, logChannels.logType],
+      set: { channelId },
+    })
+    .run();
 }
 
 export async function getLogChannel(guildId: string, logType: LogType): Promise<string | undefined> {
@@ -52,8 +48,4 @@ export async function getLogChannel(guildId: string, logType: LogType): Promise<
     .where(and(eq(logChannels.guildId, guildId), eq(logChannels.logType, logType)))
     .get();
   return row?.channelId;
-}
-
-export async function getAllLogChannels(guildId: string) {
-  return db.select().from(logChannels).where(eq(logChannels.guildId, guildId)).all();
 }

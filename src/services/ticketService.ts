@@ -15,7 +15,7 @@ import {
   getTicketByThread,
 } from "../db/repositories/ticketRepo";
 import { getOrCreateGuildConfig } from "../db/repositories/guildConfigRepo";
-import { isSupportStaff } from "./permissionService";
+import { isSupportStaff, isTicketOpener } from "./permissionService";
 import { ticketClaimedEmbed, ticketClosedEmbed, ticketOpenedEmbed } from "../ui/embeds/ticketEmbeds";
 import { ticketControlRow } from "../ui/components/ticketButtons";
 import { generateAndPostTranscript } from "./transcriptService";
@@ -83,7 +83,7 @@ export async function closeTicket(
   if (!ticket) throw new TicketError("This isn't a ticket thread.");
   if (ticket.status === "closed") throw new TicketError("This ticket is already closed.");
 
-  const canClose = staff.id === ticket.openerId || (await isSupportStaff(staff));
+  const canClose = isTicketOpener(staff, ticket.openerId) || (await isSupportStaff(staff));
   if (!canClose) throw new TicketError("You don't have permission to close this ticket.");
 
   await closeTicketRow(thread.id, staff.id, reason);
