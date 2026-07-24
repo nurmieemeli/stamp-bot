@@ -1,4 +1,4 @@
-import type { ThreadChannel } from "discord.js";
+import type { Message, ThreadChannel } from "discord.js";
 import { createTranscript, ExportReturnType } from "discord-html-transcripts";
 import { getOrCreateGuildConfig } from "../db/repositories/guildConfigRepo";
 import { setTranscriptMessageId } from "../db/repositories/ticketRepo";
@@ -21,6 +21,48 @@ function describeError(err: unknown) {
     };
   }
   return { message: String(err) };
+}
+
+const PREVIEW_MAX_CHARS = 3500;
+const PREVIEW_MAX_MESSAGES = 200;
+
+async function fetchThreadMessagesOldestFirst(thread: ThreadChannel): Promise<Message[]> {
+  const messages: Message[] = [];
+  let before: string | undefined;
+
+  while (messages.length < PREVIEW_MAX_MESSAGES) {
+    const batch = await thread.messages.fetch({ limit: 100, before });
+    if (batch.size === 0) break;
+    messages.push(...batch.values());
+    before = batch.last()?.id;
+    if (batch.size < 100) break;
+  }
+
+  return messages.reverse();
+}
+
+async function buildTranscriptPreview(thread: ThreadChannel): Promise<string> {
+  const messages = await fetchThreadMessagesOldestFirst(thread).catch((err: unknown) => {
+    logger.warn(describeError(err), `Failed to fetch messages for transcript preview of ${thread.id}`);
+    return [] as Message[];
+  });
+
+  const lines = messages
+    .filter((msg) => msg.content || msg.attachments.size > 0)
+    .map((msg) => {
+      const timestamp = `<t:${Math.floor(msg.createdTimestamp / 1000)}:t>`;
+      const content = msg.content || `*${msg.attachments.size} attachment(s)*`;
+      return `**${msg.author.tag}** ${timestamp}\n${content}`;
+    });
+
+  if (lines.length === 0) return "*No messages were sent in this ticket.*";
+
+  let text = lines.join("\n\n");
+  if (text.length > PREVIEW_MAX_CHARS) {
+    text = `${text.slice(0, PREVIEW_MAX_CHARS)}\n\n*… truncated, see the attached file for the full transcript.*`;
+  }
+
+  return text;
 }
 
 export async function generateAndPostTranscript(thread: ThreadChannel, ticket: Ticket) {
@@ -57,12 +99,15 @@ export async function generateAndPostTranscript(thread: ThreadChannel, ticket: T
     logger.warn(`Posting transcript summary for ticket ${thread.id} without a file (generation failed above).`);
   }
 
+  const preview = await buildTranscriptPreview(thread);
+
   const embed = transcriptSummaryEmbed({
     threadName: thread.name,
     openerId: ticket.openerId,
     claimedBy: ticket.claimedBy,
     closedBy: ticket.closedBy ?? "unknown",
     reason: ticket.closeReason,
+    preview,
   });
 
   const sent = await transcriptChannel

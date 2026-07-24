@@ -38,8 +38,9 @@ export function transcriptSummaryEmbed(params: {
   claimedBy?: string | null;
   closedBy: string;
   reason?: string | null;
+  preview?: string;
 }) {
-  return new EmbedBuilder()
+  const embed = new EmbedBuilder()
     .setColor(0x99aab5)
     .setTitle(`Transcript: ${params.threadName}`)
     .addFields(
@@ -49,4 +50,8 @@ export function transcriptSummaryEmbed(params: {
       { name: "Reason", value: params.reason ?? "No reason provided" }
     )
     .setTimestamp();
+
+  if (params.preview) embed.setDescription(params.preview);
+
+  return embed;
 }
